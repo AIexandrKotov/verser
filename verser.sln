@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "verser", "verser\verser.csproj", "{3C232B5B-4C01-43FB-8037-993DC208F5B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "verser_gui", "verser_gui\verser_gui.csproj", "{6BCF730E-56B0-411C-9C0F-2F7BD4F4EF8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C232B5B-4C01-43FB-8037-993DC208F5B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C232B5B-4C01-43FB-8037-993DC208F5B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C232B5B-4C01-43FB-8037-993DC208F5B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C232B5B-4C01-43FB-8037-993DC208F5B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BCF730E-56B0-411C-9C0F-2F7BD4F4EF8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BCF730E-56B0-411C-9C0F-2F7BD4F4EF8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BCF730E-56B0-411C-9C0F-2F7BD4F4EF8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BCF730E-56B0-411C-9C0F-2F7BD4F4EF8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E874612C-333A-4242-A9BB-4855B1ECF510}
+	EndGlobalSection
+EndGlobal
