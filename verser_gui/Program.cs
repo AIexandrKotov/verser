@@ -8,6 +8,7 @@ namespace verser_gui
         [STAThread]
         static void Main()
         {
+            Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new VerserMain());
         }
