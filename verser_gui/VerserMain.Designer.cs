@@ -28,21 +28,47 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.AssignedProjects = new System.Windows.Forms.FlowLayoutPanel();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.SuspendLayout();
+            // 
+            // AssignedProjects
+            // 
+            this.AssignedProjects.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.AssignedProjects.Location = new System.Drawing.Point(12, 12);
+            this.AssignedProjects.Name = "AssignedProjects";
+            this.AssignedProjects.Size = new System.Drawing.Size(760, 413);
+            this.AssignedProjects.TabIndex = 0;
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Location = new System.Drawing.Point(0, 428);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(784, 22);
+            this.statusStrip1.TabIndex = 1;
+            this.statusStrip1.Text = "statusStrip1";
             // 
             // VerserMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(784, 450);
+            this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.AssignedProjects);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "VerserMain";
             this.ShowIcon = false;
-            this.Text = "VerserMain";
+            this.Text = "Verser";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
+
+        private System.Windows.Forms.FlowLayoutPanel AssignedProjects;
+        private System.Windows.Forms.StatusStrip statusStrip1;
     }
 }

@@ -1,13 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net471</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <Version>0.1.0-alpha.0</Version>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\verser\verser.csproj" />
   </ItemGroup>
-
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="&quot;..\verser.exe&quot; --append &quot;verser_gui/verser_gui.csproj&quot;" />
+  </Target>
 </Project>
