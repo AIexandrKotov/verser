@@ -6,6 +6,7 @@ using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -15,13 +16,18 @@ namespace verser
     public static class VerserAPI
     {
         public static readonly string ConfigPath;
+        public static readonly string CachePath;
         public static readonly string VerserExePath;
         static VerserAPI()
         {
-            ConfigPath = Path.Combine(Path.GetDirectoryName(VerserExePath = System.Reflection.Assembly.GetEntryAssembly().ManifestModule.FullyQualifiedName), "verserconfig.xml");
+            var directory = Path.GetDirectoryName(VerserExePath = System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.FullyQualifiedName);
+            ConfigPath = Path.Combine(directory, "verserconfig.xml");
+            CachePath = Path.Combine(directory, "verser.cachefile");
         }
         private static VerserConfig Config;
         private static DateTime LastConfigWrite;
+
+        private static Cache Cache;
         private static bool UpdateConfig()
         {
             if (LastConfigWrite != File.GetLastWriteTime(ConfigPath))
@@ -36,6 +42,37 @@ namespace verser
         }
 
         public static event Action Updated = delegate { };
+
+        private static Exception ReadVerserCache()
+        {
+            try
+            {
+                Cache = Cache.FromXML(File.ReadAllText(CachePath));
+                return null;
+            }
+            catch (FileNotFoundException)
+            {
+                Cache = new Cache() { LockMultiplatforms = new Dictionary<string, int>() };
+                return null;
+            }
+            catch (Exception e)
+            {
+                return e;
+            }
+        }
+        private static Exception SaveVerserCache()
+        {
+            try
+            {
+                if (Cache == null) throw new NullReferenceException("Cache was null");
+                File.WriteAllText(CachePath, Cache.GetXML());
+                return null;
+            }
+            catch (Exception e)
+            {
+                return e;
+            }
+        }
 
         public static List<Config> GetDefaultTemplateConfigurations()
         {
@@ -85,6 +122,11 @@ namespace verser
                 LastConfigWrite = File.GetLastWriteTime(ConfigPath);
                 return null;
             }
+            catch (FileNotFoundException)
+            {
+                InitDefaultConfig();
+                return null;
+            }
             catch (Exception e) 
             {
                 return e;
@@ -96,6 +138,7 @@ namespace verser
             {
                 if (Config == null) throw new NullReferenceException("Config was null");
                 File.WriteAllText(ConfigPath, Config.GetXML());
+                LastConfigWrite = File.GetLastWriteTime(ConfigPath);
                 return null;
             }
             catch (Exception e)
@@ -103,7 +146,7 @@ namespace verser
                 return e;
             }
         }
-        public static void InitDefaultConfig()
+        private static void InitDefaultConfig()
         {
             Config = new VerserConfig()
             {
@@ -218,7 +261,7 @@ namespace verser
         #endregion
 
         #region Private for configuration
-        private static XElement GetXVersion(XDocument xdoc)
+        private static XElement GetPropertyGroup(XDocument xdoc)
         {
             var pg = xdoc.Root.Elements("PropertyGroup").LastOrDefault(x => x.Element("Version") != null);
             if (pg == null)
@@ -228,14 +271,24 @@ namespace verser
                 pg = new XElement("PropertyGroup");
                 xdoc.Root.Add(pg);
             }
-            var xversion = pg.Element("Version");
+            return pg;
+        }
+        private static XElement GetXVersion(XElement propertygroup)
+        {
+            var xversion = propertygroup.Element("Version");
             if (xversion == null)
             {
                 xversion = new XElement("Version");
                 xversion.SetValue("0.1.0");
-                pg.Add(xversion);
+                propertygroup.Add(xversion);
             }
             return xversion;
+        }
+        private static int GetPlatfromsCount(XElement propertygroup)
+        {
+            var tf = propertygroup.Element("TargetFrameworks");
+            if (tf == null) return 1;
+            return tf.Value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Length;
         }
         #endregion
 
@@ -271,12 +324,76 @@ namespace verser
             var newversion = project.Version.UpdateTo(project.Project.Configurations.FirstOrDefault(x => x.ConfigName == config_name));
             UpdateVersion(project.Project, newversion);
         }
-        public static void Append(string path_or_name)
+
+        private static bool LockMultiplatform(ProjectInfo project)
+        {
+            ReadVerserCache();
+            if (Cache.LockMultiplatforms.TryGetValue(project.Project.Path, out var locks))
+            {
+                if (locks != 0)
+                {
+                    Cache.LockMultiplatforms[project.Project.Path] = locks - 1;
+                    SaveVerserCache();
+                    return true;
+                }
+                else
+                {
+                    if (project.Platforms > 1)
+                    {
+                        Cache.LockMultiplatforms[project.Project.Path] = project.Platforms - 1;
+                        SaveVerserCache();
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                if (project.Platforms > 1)
+                {
+                    Cache.LockMultiplatforms[project.Project.Path] = project.Platforms - 1;
+                    SaveVerserCache();
+                    return false;
+                }
+            }
+            return false;
+        }
+        public static void Append(string path_or_name, bool lockmultiplatform = false)
         {
             UpdateConfig();
             var project = GetProjectInfo(path_or_name);
             var newversion = project.Version.Next(project.Config);
-            UpdateVersion(project.Project, newversion);
+            if (!lockmultiplatform || !LockMultiplatform(project))
+                UpdateVersion(project.Project, newversion);
+        }
+        public static void Major(string path_or_name, bool lockmultiplatform = false)
+        {
+            UpdateConfig();
+            var project = GetProjectInfo(path_or_name);
+            var newversion = project.Version.AppendMajor();
+            if (!lockmultiplatform || !LockMultiplatform(project))
+                UpdateVersion(project.Project, newversion);
+        }
+        public static void Minor(string path_or_name, bool lockmultiplatform = false)
+        {
+            UpdateConfig();
+            var project = GetProjectInfo(path_or_name);
+            var newversion = project.Version.AppendMinor();
+            if (!lockmultiplatform || !LockMultiplatform(project))
+                UpdateVersion(project.Project, newversion);
+        }
+        public static void Patch(string path_or_name, bool lockmultiplatform = false)
+        {
+            UpdateConfig();
+            var project = GetProjectInfo(path_or_name);
+            var newversion = project.Version.AppendPatch();
+            if (!lockmultiplatform || !LockMultiplatform(project))
+                UpdateVersion(project.Project, newversion);
+        }
+
+        public static VerserVersion GetVersionOfAssembly(Assembly assembly)
+        {
+            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return new VerserVersion(fileVersionInfo.ProductVersion);
         }
 
         public static ProjectInfo GetProjectInfo(string path_or_name)
@@ -303,7 +420,9 @@ namespace verser
         {
             var xdoc = XDocument.Load(project.Path);
             var target = GetTarget(xdoc);
-            var projectInfo_version = new VerserVersion(GetXVersion(xdoc).Value);
+            var propertygroup = GetPropertyGroup(xdoc);
+            var projectInfo_platforms = GetPlatfromsCount(propertygroup);
+            var projectInfo_version = new VerserVersion(GetXVersion(propertygroup).Value);
             var projectInfo_is_tracing = IsTracing(target);
 
             return new ProjectInfo()
@@ -311,13 +430,15 @@ namespace verser
                 Project = project,
                 IsTracing = projectInfo_is_tracing,
                 Version = projectInfo_version,
+                Platforms = projectInfo_platforms,
                 Config = FindConfiguration(projectInfo_version, project.Configurations),
             };
         }
         public static void UpdateVersion(Project project, VerserVersion version)
         {
             var xdoc = XDocument.Load(project.Path);
-            var xversion = GetXVersion(xdoc);
+            var pg = GetPropertyGroup(xdoc);
+            var xversion = GetXVersion(pg);
             xversion.SetValue(version.ToString());
 
             xdoc.Save(project.Path);

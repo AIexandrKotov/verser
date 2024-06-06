@@ -122,18 +122,44 @@ namespace verser
         }
     }
 
+    public sealed class Cache
+    {
+        public Dictionary<string, int> LockMultiplatforms;
+
+        public static Cache FromXML(string xml)
+        {
+            var xdoc = XDocument.Parse(xml);
+            
+            return new Cache()
+            {
+                LockMultiplatforms = xdoc.Root.Elements("LockMultiplatform").ToDictionary(x => x.Attribute("path").Value, x => int.Parse(x.Value)),
+            };
+        }
+        public string GetXML()
+        {
+            var xdoc = new XDocument();
+            var xroot = new XElement("Cache");
+            xdoc.Add(xroot);
+
+            foreach (var config in LockMultiplatforms)
+            {
+                var xlock = new XElement("LockMultiplatform");
+                xlock.Add(new XAttribute("path", config.Key));
+                xlock.SetValue(config.Value);
+                xroot.Add(xlock);
+            }
+
+            return xdoc.ToString();
+        }
+    }
     public sealed class ProjectInfo
     {
         public const string ConfigNotFound = "$$CNFERROR$$";
         public Project Project;
         public bool IsTracing;
+        public int Platforms;
         public VerserVersion Version;
         public Config Config;
-    }
-
-    public sealed class CSProj
-    {
-        public string CurrentConfiguration; //null - Turned off Verser
     }
 
     public class VerserVersion
