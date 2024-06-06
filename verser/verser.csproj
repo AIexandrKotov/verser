@@ -3,8 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net471;net6.0</TargetFrameworks>
-    <Version>0.1.3</Version>
+    <Version>0.1.4-alpha.25</Version>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="&quot;bin\Release\net471\verser.exe&quot; --append &quot;..\..\..\verser.csproj&quot;" />
   </Target>
 </Project>

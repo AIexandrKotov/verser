@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -119,14 +120,17 @@ namespace verser
     // <PON> is PathOrName string
 
     -q --quit               - Quit VERSER
-    -p --projects           - Outs list of projects
-       --addproject <pon>  - Register project
+    -l --projects           - Outs list of projects
+    -a --add <pon>          - Register project
          --empty            - Don't insert default configurations into projectname
-       --remproject <pon>  - Unregister project
-       --trace <PON>        - Add versioning for projectname
-       --untrace <PON>      - Remove versioning for projectname
-       --switch <PON> <STR> - Switch project config to another
-       --append <PON>       - Append version of project
+    -r --remove <pon>       - Unregister project
+    -t --trace <PON>        - Add versioning for projectname
+    -u --untrace <PON>      - Remove versioning for projectname
+    -s --switch <PON> <STR> - Switch project config to another
+       --append <PON>       - Append version of project based on config
+    -M --major <PON>        - Append Major version of project
+    -m --minor <PON>        - Append Minor version of project
+    -p --patch <PON>        - Append Patch version of project
 
     -h --help      - Outs this text
 "; 
@@ -134,7 +138,15 @@ namespace verser
         {
             { "-h", "--help" },
             { "-q", "--quit" },
-            { "-p", "--projects" },
+            { "-l", "--projects" },
+            { "-a", "--add" },
+            { "-r", "--remove" },
+            { "-t", "--trace" },
+            { "-u", "--untrace" },
+            { "-s", "--switch" },
+            { "-M", "--major" },
+            { "-m", "--minor" },
+            { "-P", "--patch" },
         };
 
         public static void OutHelp()
@@ -145,11 +157,7 @@ namespace verser
         public static void Initialize()
         {
             var readed = VerserAPI.ReadVerserConfig();
-            if (readed is FileNotFoundException)
-            {
-                VerserAPI.InitDefaultConfig();
-            }
-            else if (readed != null)
+            if (readed != null)
             {
                 Console.WriteLine(readed.ToString());
                 Environment.Exit(-1);
@@ -237,7 +245,7 @@ namespace verser
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Verser ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(verserAssembly.GetName().Version.ToString(3));
+            Console.WriteLine(VerserAPI.GetVersionOfAssembly(verserAssembly));
             Console.ResetColor();
             Console.Write("input");
             Console.ForegroundColor = ConsoleColor.White;
@@ -256,18 +264,24 @@ namespace verser
                     if (arguments.HasArgument("-q", ShortVerserCommands)) return;
                     else if (arguments.HasArgument("-h", ShortVerserCommands))
                         OutHelp();
-                    else if (arguments.HasArgument("-p", ShortVerserCommands))
+                    else if (arguments.HasArgument("-l", ShortVerserCommands))
                         OutProjects();
-                    else if (arguments.TryGetArgument("--trace", out var pon))
+                    else if (arguments.TryGetArgument("-t", out var pon, null, ShortVerserCommands))
                         VerserAPI.Trace(pon);
-                    else if (arguments.TryGetArgument("--untrace", out pon))
+                    else if (arguments.TryGetArgument("-u", out pon, null, ShortVerserCommands))
                         VerserAPI.Untrace(pon);
-                    else if (arguments.TryGetArgument("--addproject", out pon))
+                    else if (arguments.TryGetArgument("-a", out pon, null, ShortVerserCommands))
                         VerserAPI.AddProject(pon, !arguments.HasArgument("--empty", ShortVerserCommands));
-                    else if (arguments.TryGetArgument("--remproject", out pon))
+                    else if (arguments.TryGetArgument("-r", out pon, null, ShortVerserCommands))
                         VerserAPI.RemoveProject(pon);
-                    else if (arguments.TryGetArgument("--switch", out pon) && arguments.TryGetArgument("--switch", out var config, null, null, 1))
+                    else if (arguments.TryGetArgument("-s", out pon, null, ShortVerserCommands) && arguments.TryGetArgument("-s", out var config, null, ShortVerserCommands, 1))
                         VerserAPI.SwitchToConfig(pon, config);
+                    else if (arguments.TryGetArgument("-M", out pon, null, ShortVerserCommands))
+                        VerserAPI.Major(pon);
+                    else if (arguments.TryGetArgument("-m", out pon, null, ShortVerserCommands))
+                        VerserAPI.Minor(pon);
+                    else if (arguments.TryGetArgument("-p", out pon, null, ShortVerserCommands))
+                        VerserAPI.Patch(pon);
                     else if (arguments.TryGetArgument("--append", out pon))
                         VerserAPI.Append(pon);
                     else OutAsWarning("The command was not recognized");
@@ -284,10 +298,25 @@ namespace verser
         {
             Environment.CurrentDirectory = Path.GetDirectoryName(VerserAPI.VerserExePath);
             if (args.Length == 0) RunVerserConsole();
-            else if (args.Length == 2 && args.TryGetArgument("--append", out var pon))
+            else if (args.TryGetArgument("--append", out var pon))
             {
                 Initialize();
-                VerserAPI.Append(pon);
+                VerserAPI.Append(pon, true);
+            }
+            else if (args.TryGetArgument("--major", out pon))
+            {
+                Initialize();
+                VerserAPI.Major(pon, true);
+            }
+            else if (args.TryGetArgument("--minor", out pon))
+            {
+                Initialize();
+                VerserAPI.Minor(pon, true);
+            }
+            else if (args.TryGetArgument("--patch", out pon))
+            {
+                Initialize();
+                VerserAPI.Patch(pon, true);
             }
         }
     }
