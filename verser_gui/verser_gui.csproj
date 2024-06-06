@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net471</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <Version>0.1.0-alpha.0</Version>
+    <Version>0.1.0-alpha.18</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\verser\verser.csproj" />

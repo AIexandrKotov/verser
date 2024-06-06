@@ -16,5 +16,27 @@ namespace verser_gui
         {
             InitializeComponent();
         }
+
+        private void button26_Click(object sender, EventArgs e)
+        {
+            Button btnSender = (Button)sender;
+            if (appendsMenu.Visible)
+                appendsMenu.Hide();
+            else
+            {
+                appendsMenu.Show(btnSender, new Point(btnSender.Width - appendsMenu.Width, btnSender.Height));
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Button btnSender = (Button)sender;
+            if (configurationsListMenu.Visible)
+                configurationsListMenu.Hide();
+            else
+            {
+                configurationsListMenu.Show(btnSender, new Point(btnSender.Width - configurationsListMenu.Width, btnSender.Height));
+            }
+        }
     }
 }

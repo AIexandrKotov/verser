@@ -28,20 +28,23 @@ namespace verser
         private static DateTime LastConfigWrite;
 
         private static Cache Cache;
-        private static bool UpdateConfig()
+        private static bool UpdateConfig(bool operation_canceled)
         {
             if (LastConfigWrite != File.GetLastWriteTime(ConfigPath))
             {
                 var readed = ReadVerserConfig();
                 if (readed != null)
                     throw readed;
-                Updated();
+                Updated(operation_canceled);
                 return true;
             }
             return false;
         }
 
-        public static event Action Updated = delegate { };
+        /// <summary>
+        /// Argument if changes applied
+        /// </summary>
+        public static event Action<bool> Updated = delegate { };
 
         private static Exception ReadVerserCache()
         {
@@ -158,7 +161,7 @@ namespace verser
 
         public static void AddProject(string path, bool insert_configs = true)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = new Project() { 
                 Path = path, 
                 Configurations = insert_configs ? Config.TemplateConfigs.Select(x => (Config)x.Clone()).ToList() : new List<Config>(),
@@ -168,9 +171,10 @@ namespace verser
             Config.Projects.Add(project);
             SaveVerserConfig();
         }
+
         public static Project GetProjectByPathOrName(string path_or_name)
         {
-            UpdateConfig();
+            UpdateConfig(false);
             var pathfinded = Config.Projects.Where(x => x.Path == path_or_name).ToArray();
             if (pathfinded.Length != 0)
                 return pathfinded[0];
@@ -183,7 +187,7 @@ namespace verser
         }
         public static void RemoveProject(string path_or_name)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectByPathOrName(path_or_name);
             Config.Projects.Remove(project);
             SaveVerserConfig();
@@ -191,7 +195,7 @@ namespace verser
 
         public static Project[] GetProjects()
         {
-            UpdateConfig();
+            UpdateConfig(false);
             return Config.Projects.ToArray();
         }
         public static string GetRelativePath(string relativeTo, string path)
@@ -294,7 +298,7 @@ namespace verser
 
         public static void Trace(string path_or_name)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectByPathOrName(path_or_name);
 
             var xdoc = XDocument.Load(project.Path);
@@ -307,7 +311,7 @@ namespace verser
         }
         public static void Untrace(string path_or_name)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectByPathOrName(path_or_name);
 
             var xdoc = XDocument.Load(project.Path);
@@ -319,7 +323,7 @@ namespace verser
         }
         public static void SwitchToConfig(string path_or_name, string config_name)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectInfo(path_or_name);
             var newversion = project.Version.UpdateTo(project.Project.Configurations.FirstOrDefault(x => x.ConfigName == config_name));
             UpdateVersion(project.Project, newversion);
@@ -359,7 +363,7 @@ namespace verser
         }
         public static void Append(string path_or_name, bool lockmultiplatform = false)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectInfo(path_or_name);
             var newversion = project.Version.Next(project.Config);
             if (!lockmultiplatform || !LockMultiplatform(project))
@@ -367,7 +371,7 @@ namespace verser
         }
         public static void Major(string path_or_name, bool lockmultiplatform = false)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectInfo(path_or_name);
             var newversion = project.Version.AppendMajor();
             if (!lockmultiplatform || !LockMultiplatform(project))
@@ -375,7 +379,7 @@ namespace verser
         }
         public static void Minor(string path_or_name, bool lockmultiplatform = false)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectInfo(path_or_name);
             var newversion = project.Version.AppendMinor();
             if (!lockmultiplatform || !LockMultiplatform(project))
@@ -383,7 +387,7 @@ namespace verser
         }
         public static void Patch(string path_or_name, bool lockmultiplatform = false)
         {
-            UpdateConfig();
+            if (UpdateConfig(true)) return;
             var project = GetProjectInfo(path_or_name);
             var newversion = project.Version.AppendPatch();
             if (!lockmultiplatform || !LockMultiplatform(project))
@@ -398,13 +402,11 @@ namespace verser
 
         public static ProjectInfo GetProjectInfo(string path_or_name)
         {
-            UpdateConfig();
             return GetProjectInfo(GetProjectByPathOrName(path_or_name));
         }
 
         public static Config FindConfiguration(VerserVersion version, IEnumerable<Config> configs)
         {
-            UpdateConfig();
             if (!configs.Any()) return null;
             if (string.IsNullOrEmpty(version.Suffix) && version.Prerelease == null)
                 return configs.FirstOrDefault(x => string.IsNullOrEmpty(x.Suffix) && x.Prerelease == verser.Config.PrereleaseType.None);
@@ -416,6 +418,7 @@ namespace verser
                 return configs.FirstOrDefault(x => x.Suffix == version.Suffix && x.Prerelease != verser.Config.PrereleaseType.None);
             return null;
         }
+
         public static ProjectInfo GetProjectInfo(Project project)
         {
             var xdoc = XDocument.Load(project.Path);
