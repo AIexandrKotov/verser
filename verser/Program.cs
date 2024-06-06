@@ -177,9 +177,12 @@ namespace verser
             return ConsoleColor.White;
         }
 
+        public static (string, ProjectInfo[])[] GetProjectsByName() => VerserAPI.GetProjects().GroupBy(x => x.Name).OrderBy(x => x.Key).Select(x => (x.Key, x.Select(p => VerserAPI.GetProjectInfo(p)).ToArray())).ToArray();
+
         public static void OutProjects()
         {
-            var projects = VerserAPI.GetProjects().GroupBy(x => x.Name).OrderBy(x => x.Key).Select(x => (x.Key, x.Select(p => VerserAPI.GetProjectInfo(p)).ToArray())).ToArray();
+            var projects = GetProjectsByName();
+
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("-- Verser assigned projects --");
             Console.ResetColor();
@@ -209,13 +212,13 @@ namespace verser
                 {
                     var project = projectname.Item2[0];
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(projectname.Key);
+                    Console.Write(projectname.Item1);
                     AddOfProj(project);
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine(projectname.Key);
+                    Console.WriteLine(projectname.Item1);
                     foreach (var project in projectname.Item2)
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;

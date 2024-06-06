@@ -20,7 +20,7 @@ namespace verser
         public static readonly string VerserExePath;
         static VerserAPI()
         {
-            var directory = Path.GetDirectoryName(VerserExePath = System.Reflection.Assembly.GetEntryAssembly().ManifestModule.FullyQualifiedName);
+            var directory = Path.GetDirectoryName(VerserExePath = System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.FullyQualifiedName);
             ConfigPath = Path.Combine(directory, "verserconfig.xml");
             CachePath = Path.Combine(directory, "verser.cachefile");
         }
@@ -146,7 +146,7 @@ namespace verser
                 return e;
             }
         }
-        public static void InitDefaultConfig()
+        private static void InitDefaultConfig()
         {
             Config = new VerserConfig()
             {
