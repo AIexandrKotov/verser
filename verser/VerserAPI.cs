@@ -18,11 +18,15 @@ namespace verser
         public static readonly string ConfigPath;
         public static readonly string CachePath;
         public static readonly string VerserExePath;
+        public static readonly string VerserStylesPath;
+        public static readonly VerserStyles Style;
         static VerserAPI()
         {
             var directory = Path.GetDirectoryName(VerserExePath = System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.FullyQualifiedName);
             ConfigPath = Path.Combine(directory, "verserconfig.xml");
             CachePath = Path.Combine(directory, "verser.cachefile");
+            VerserStylesPath = Path.Combine(directory, "verserstyles.xml");
+            Style = File.Exists(VerserStylesPath) ? VerserStyles.FromXML(File.ReadAllText(VerserStylesPath)) : VerserStyles.GetDefault();
         }
         private static VerserConfig Config;
         private static DateTime LastConfigWrite;
@@ -200,8 +204,8 @@ namespace verser
         }
         public static string GetRelativePath(string relativeTo, string path)
         {
-            var sourceParts = Path.GetDirectoryName(Path.GetFullPath(relativeTo)).Split(Path.DirectorySeparatorChar);
-            var targetParts = Path.GetFullPath(path).Split(Path.DirectorySeparatorChar);
+            var sourceParts = Path.GetDirectoryName(Path.GetFullPath(relativeTo).Replace('/', '\\')).Split(Path.DirectorySeparatorChar);
+            var targetParts = Path.GetFullPath(path).Replace('/', '\\').Split(Path.DirectorySeparatorChar);
 
             var n = 0;
             while (n < Math.Min(sourceParts.Length, targetParts.Length))

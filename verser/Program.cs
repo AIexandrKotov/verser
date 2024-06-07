@@ -185,14 +185,8 @@ namespace verser
 
         public static ConsoleColor GetColorForConfig(Config config)
         {
-            if (config.ConfigName.Contains("ReleaseCandidate"))
-                return ConsoleColor.Yellow;
-            else if (config.ConfigName.Contains("Release"))
-                return ConsoleColor.Green;
-            else if (config.ConfigName.Contains("Beta"))
-                return ConsoleColor.DarkYellow;
-            else if (config.ConfigName.Contains("Alpha"))
-                return ConsoleColor.Red;
+            if (VerserAPI.Style.Colors.TryGetValue(config?.ConfigName, out var color))
+                return color;
             return ConsoleColor.White;
         }
 

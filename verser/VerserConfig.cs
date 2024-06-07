@@ -289,6 +289,8 @@ namespace verser
             var ret = new VerserVersion(this);
 
             ret.Major += 1;
+            ret.Minor = 0;
+            ret.Patch = 0;
 
             return ret;
         }
@@ -297,6 +299,7 @@ namespace verser
             var ret = new VerserVersion(this);
 
             ret.Minor += 1;
+            ret.Patch = 0;
 
             return ret;
         }
