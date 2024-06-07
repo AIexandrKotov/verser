@@ -121,19 +121,34 @@ namespace verser
 
     -q --quit               - Quit VERSER
     -l --projects           - Outs list of projects
-    -a --add <pon>          - Register project
-         --empty            - Don't insert default configurations into projectname
-    -r --remove <pon>       - Unregister project
-    -t --trace <PON>        - Add versioning for projectname
-    -u --untrace <PON>      - Remove versioning for projectname
+    -a --add <PON>          - Register project
+         --empty            - Don't insert default configurations into project
+    -r --remove <PON>       - Unregister project
+    -t --trace <PON>        - Add versioning for project
+    -u --untrace <PON>      - Remove versioning for project
     -s --switch <PON> <STR> - Switch project config to another
        --append <PON>       - Append version of project based on config
     -M --major <PON>        - Append Major version of project
     -m --minor <PON>        - Append Minor version of project
     -p --patch <PON>        - Append Patch version of project
 
+       --clear     - Clear screen
     -h --help      - Outs this text
-"; 
+";
+        /*
+        
+    -c --config <...>
+         --out or 0 args    - Outs stored config
+         --out <STR>        - Outs template config with name STR
+         --out <PON> <STR>  - Outs 
+         --new <STR>        - Store new config with name STR
+         --copy <PON> <STR> - Store in cache copied config of project
+         --copy <STR>       - Store in cache copied template 
+         --add <PON>        - Add config into project
+         --add              - Add config into template configurations
+         //add replace config if name is exists
+         --set <STR> <VAL>  - Set property of config to value
+        */
         public static Dictionary<string, string> ShortVerserCommands = new Dictionary<string, string>()
         {
             { "-h", "--help" },
@@ -156,6 +171,10 @@ namespace verser
 
         public static void Initialize()
         {
+            VerserAPI.Updated += (canceled) =>
+            {
+                OutAsWarning($"{Path.GetFileName(VerserAPI.ConfigPath)} has been updated." + (canceled ? " The command has been canceled." : ""));
+            };
             var readed = VerserAPI.ReadVerserConfig();
             if (readed != null)
             {
@@ -166,14 +185,8 @@ namespace verser
 
         public static ConsoleColor GetColorForConfig(Config config)
         {
-            if (config.ConfigName.Contains("ReleaseCandidate"))
-                return ConsoleColor.Yellow;
-            else if (config.ConfigName.Contains("Release"))
-                return ConsoleColor.Green;
-            else if (config.ConfigName.Contains("Beta"))
-                return ConsoleColor.Magenta;
-            else if (config.ConfigName.Contains("Alpha"))
-                return ConsoleColor.Red;
+            if (VerserAPI.Style.Colors.TryGetValue(config?.ConfigName, out var color))
+                return color;
             return ConsoleColor.White;
         }
 
@@ -242,9 +255,8 @@ namespace verser
             Console.ResetColor();
         }
 
-        public static void RunVerserConsole()
+        public static void OutHead()
         {
-            Initialize();
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Verser ");
             Console.ForegroundColor = ConsoleColor.White;
@@ -255,6 +267,12 @@ namespace verser
             Console.Write(" -h ");
             Console.ResetColor();
             Console.WriteLine("for help");
+        }
+
+        public static void RunVerserConsole()
+        {
+            Initialize();
+            OutHead();
             while (true)
             {
                 Console.ForegroundColor = ConsoleColor.White;
@@ -269,6 +287,10 @@ namespace verser
                         OutHelp();
                     else if (arguments.HasArgument("-l", ShortVerserCommands))
                         OutProjects();
+                    else if (arguments.HasArgument("--clear"))
+                    {
+                        Console.Clear(); OutHead();
+                    }
                     else if (arguments.TryGetArgument("-t", out var pon, null, ShortVerserCommands))
                         VerserAPI.Trace(pon);
                     else if (arguments.TryGetArgument("-u", out pon, null, ShortVerserCommands))

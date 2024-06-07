@@ -154,11 +154,22 @@ namespace verser
     }
     public sealed class ProjectInfo
     {
-        public const string ConfigNotFound = "$$CNFERROR$$";
         public Project Project;
+        /// <summary>
+        /// Определён ли вызов verser.exe после сборки в этом проекте
+        /// </summary>
         public bool IsTracing;
+        /// <summary>
+        /// Количество платформ под которые собирается этот проект
+        /// </summary>
         public int Platforms;
+        /// <summary>
+        /// Версия проекта на момент прочтения
+        /// </summary>
         public VerserVersion Version;
+        /// <summary>
+        /// Теущая конфигурация проекта
+        /// </summary>
         public Config Config;
     }
 
@@ -278,6 +289,8 @@ namespace verser
             var ret = new VerserVersion(this);
 
             ret.Major += 1;
+            ret.Minor = 0;
+            ret.Patch = 0;
 
             return ret;
         }
@@ -286,6 +299,7 @@ namespace verser
             var ret = new VerserVersion(this);
 
             ret.Minor += 1;
+            ret.Patch = 0;
 
             return ret;
         }
