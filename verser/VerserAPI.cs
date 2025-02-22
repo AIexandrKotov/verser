@@ -241,6 +241,9 @@ namespace verser
         {
             var pathToExe = GetRelativePath(project.Path, VerserExePath);
             var runCommand = $"\"{pathToExe}\" --append \"{project.Path}\"";
+#if NETCOREAPP2_0_OR_GREATER || NET5_0_OR_GREATER
+            runCommand = "dotnet " + runCommand;
+#endif
 
             var tracer = new XElement("Exec");
             tracer.Add(new XAttribute("Command", runCommand));

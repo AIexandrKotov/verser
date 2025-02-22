@@ -2,10 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net471;net6.0</TargetFrameworks>
-    <Version>0.2.1-alpha.0</Version>
+    <TargetFrameworks>net471;net5.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <Version>0.3.1-alpha.0</Version>
+    <CETCompat>false</CETCompat>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="&quot;..\verser.exe&quot; --append &quot;verser/verser.csproj&quot;" />
+    <Exec Command="dotnet &quot;..\verser.dll&quot; --append &quot;verser/verser.csproj&quot;" />
   </Target>
 </Project>
